@@ -15,8 +15,4 @@ def unzip(path, unzipPath):
         print(i,"/", fileNum)
         i += 1
 
-if(zipfile.is_zipfile('zipTest/19-3.zip')):
-    print("ok")
 unzip("trainData/BeatSaver/", "trainData/unzipFile")
-#zipf = zipfile.ZipFile("2681-1870.zip")
-#zipf.extractall('zipTest')
