@@ -5,14 +5,22 @@ def transformAudio2Wav(path):
     filesPath = os.listdir()
     count = 1
     total = len(filesPath)
+    haveWav = 0
     for fileName in filesPath:
+        haveWav = 0
         print(fileName)
         for file in os.listdir(fileName):
-            if(os.path.splitext(file)[-1] == ".ogg"):
-                print(fileName)
-                os.chdir(fileName)
-                os.system("ffmpeg -i " + file + " " + os.path.splitext(file)[0] + ".wav" )
-                os.chdir("..")
+            if(file.endswith(".wav")):
+                haveWav = 1
+        if(haveWav == 0):
+            for file in os.listdir(fileName):
+                if (file.endswith(".ogg")):
+                    print(fileName)
+                    os.chdir(fileName)
+                    print(fileName)
+                    print("ffmpeg -i " + file + " " + os.path.splitext(file)[0] + ".wav")
+                    os.system("ffmpeg -i " + file + " " + os.path.splitext(file)[0] + ".wav")
+                    os.chdir("..")
         print("已完成：", count , "/" , total)
         count += 1
 

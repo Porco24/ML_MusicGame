@@ -1,5 +1,6 @@
 import requests
 import bs4
+import re
 
 
 def download(url, pagesPre, pagesEnd , path):
@@ -30,29 +31,41 @@ def download(url, pagesPre, pagesEnd , path):
             if (downloadListIndex == 3):
                 downloadListIndex = 0
 
+        #正则表达式筛选出评分
+        s = r"(?<=Rating: ).*?(?=%)"
+        pattern = re.compile(s)
+        Rating = pattern.findall(r.text)
+
         #进行下载
-        songIndex = 1
-        for i in downloadList:
+        i = 0
+        while i < len(Rating) :
             print("第:",pagesPre,"页,总计:",pagesEnd,"页")
-            print("第:",songIndex,"首歌,该页总共:", len(downloadList),"首歌")
-            downloadUrl = str(i)
-            downloadUrl = downloadUrl[24:-32]
-            fileName = downloadUrl[downloadUrl.rfind("/")+1:]
-            downloadRequest = requests.get(downloadUrl)
-            with open(path+fileName+".zip", "wb") as f:
-                f.write(downloadRequest.content)
-            print(fileName)
-            print(downloadUrl)
-            print("下载完成")
-            songIndex += 1
-            downloadRequest.close()
+            print("第:",i+1,"首歌,该页总共:", len(Rating),"首歌")
+            if(float(Rating[i]) >= 60.0):
+                downloadUrl = str(downloadList[i])
+                downloadUrl = downloadUrl[24:-32]
+                fileName = downloadUrl[downloadUrl.rfind("/") + 1:]
+                print(fileName)
+                print(downloadUrl)
+                downloadRequest = requests.get(downloadUrl)
+                with open(path + fileName + ".zip", "wb") as f:
+                    f.write(downloadRequest.content)
+                print("下载完成")
+                downloadRequest.close()
+            i += 1
         pagesPre += 1
         r.close()
+
+def downloadFromSearch(path):
+    r = ""
+    soup = bs4.BeautifulSoup(r.text, 'html.parser')
+    downloadList = soup.find_all("a", attrs={'type': 'button', 'class': 'btn btn-link'})
+    print(downloadList)
 
 
 url = "https://beatsaver.com/browse/played/"
 #下载前多少页的音乐
-pagesPre = 19
+pagesPre = 0
 pagesEnd = 30
 path = 'trainData/BeatSaver/'
 download(url, pagesPre, pagesEnd, path)
