@@ -18,8 +18,7 @@ def transformAudio2Wav(path):
                     print(fileName)
                     os.chdir(fileName)
                     print(fileName)
-                    print("ffmpeg -i " + file + " " + os.path.splitext(file)[0] + ".wav")
-                    os.system("ffmpeg -i " + file + " " + os.path.splitext(file)[0] + ".wav")
+                    os.system("ffmpeg -i \"" + file + "\"" + " \"" + os.path.splitext(file)[0] + "\"" + ".wav")
                     os.chdir("..")
         print("已完成：", count , "/" , total)
         count += 1

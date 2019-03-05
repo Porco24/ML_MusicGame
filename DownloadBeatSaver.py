@@ -1,9 +1,10 @@
 import requests
 import bs4
 import re
+import json
 
 
-def download(url, pagesPre, pagesEnd , path):
+def download(url, pagesPre, pagesEnd,Ranting , path):
     while pagesPre <= pagesEnd:
         #页数，和请求对应页数的网页
         pageIndex = pagesPre * 20
@@ -11,47 +12,40 @@ def download(url, pagesPre, pagesEnd , path):
         urlPage = url + pageIndex
         r = requests.get(urlPage)
 
-        #查找歌曲Div
+        #获取页面
         soup = bs4.BeautifulSoup(r.text, 'html.parser')
-        #获取下载链接(未清洗)
-        downloadList = soup.find_all("a" ,attrs={'role':'button','class': 'button'})
-
-        #清洗数据，删除dowloadList中不是下载链接的列表
-        downloadList.pop(0)
-        downloadListIndex = 0
-        i = 0
-        while i < len(downloadList):
-            #如果不是下载链接，则Pop
-            if(downloadListIndex != 0):
-                downloadList.pop(i)
-                i -= 1
-
-            downloadListIndex += 1
-            i += 1
-            if (downloadListIndex == 3):
-                downloadListIndex = 0
-
-        #正则表达式筛选出评分
-        s = r"(?<=Rating: ).*?(?=%)"
-        pattern = re.compile(s)
-        Rating = pattern.findall(r.text)
-
-        #进行下载
-        i = 0
-        while i < len(Rating) :
-            print("第:",pagesPre,"页,总计:",pagesEnd,"页")
-            print("第:",i+1,"首歌,该页总共:", len(Rating),"首歌")
-            if(float(Rating[i]) >= 60.0):
-                downloadUrl = str(downloadList[i])
-                downloadUrl = downloadUrl[24:-32]
-                fileName = downloadUrl[downloadUrl.rfind("/") + 1:]
-                print(fileName)
-                print(downloadUrl)
+        versionDivList = soup.find_all("td" ,attrs={'class': 'has-text-right'})
+        i=0
+        while i < len(versionDivList):
+            #获取歌曲version
+            version = versionDivList[i].text[9:]
+            #进入beatsaberApi页面，获取歌曲详细信息
+            apiUrl = "https://beatsaver.com/api/songs/detail/" + version
+            apiR = requests.get(apiUrl)
+            apiJson = json.loads(apiR.text)
+            #获取需要的属性
+            songID = apiJson['song']['id']
+            songName = apiJson['song']['name']
+            downVotes = apiJson['song']['downVotes']
+            upVotes = apiJson['song']['upVotes']
+            downloadUrl = apiJson['song']['downloadUrl']
+            playedCount = apiJson['song']['playedCount']
+            #计算歌曲评分
+            PopularityRating = (upVotes + 5) * 100 / (upVotes + downVotes + 10)
+            #下载信息题是
+            print("正在下载第:",pagesPre,"页,总计:",pagesEnd,"页")
+            print("正在下载第:",i+1,"首歌,该页总共:", len(versionDivList),"首歌," + songName)
+            print(PopularityRating)
+            #进行下载
+            #如果评分高于规定值，且至少有一个人玩过
+            if(PopularityRating >= Ranting and playedCount > 1):
                 downloadRequest = requests.get(downloadUrl)
-                with open(path + fileName + ".zip", "wb") as f:
+                with open(path + str(songID) + ".zip", "wb") as f:
                     f.write(downloadRequest.content)
                 print("下载完成")
                 downloadRequest.close()
+            else:
+                print("评分过低不进行下载")
             i += 1
         pagesPre += 1
         r.close()
@@ -68,4 +62,4 @@ url = "https://beatsaver.com/browse/played/"
 pagesPre = 0
 pagesEnd = 30
 path = 'trainData/BeatSaver/'
-download(url, pagesPre, pagesEnd, path)
+download(url, pagesPre, pagesEnd, 80.0, path)
