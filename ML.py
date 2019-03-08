@@ -1,40 +1,55 @@
-import matplotlib.pyplot as plt
-import scipy.io.wavfile as wav
+from keras.layers import Conv1D, Dense, MaxPool1D, Flatten, TimeDistributed, Activation
+from keras.models import Sequential
 import numpy as np
-import librosa
-import librosa.display
-import pylab
-import tensorflow as tf
-import keras
-from keras.layers import TimeDistributed, Dense, Conv2D, MaxPool2D, Dropout, LSTM, Flatten, Activation
-
-time_interval = np.shape()
-fzSize = 128
-sample = 22050
-chanel = 1
-
-model = keras.Sequential()
-model.add(TimeDistributed(Conv2D(16, (2, 2), input_shape=(time_interval, fzSize, chanel))))
-model.add(TimeDistributed(MaxPool2D((1, 2))))
-model.add(TimeDistributed(Activation(activation=tf.nn.relu)))
-model.add(TimeDistributed(Dropout(0.3)))
-model.add(TimeDistributed(Conv2D(16, (2, 3), input_shape=(time_interval, fzSize))))
-model.add(TimeDistributed(MaxPool2D((1, 2))))
-model.add(TimeDistributed(Activation(activation=tf.nn.relu)))
-model.add(TimeDistributed(Dropout(0.3)))
-model.add(TimeDistributed(Flatten()))
-model.add(LSTM(64, activation=tf.nn.tanh, return_sequences=True))
-model.add(Dense(6720))
-model.add(Activation(tf.nn.tanh))
-model.add(Dense(2))
-model.add(Activation(tf.nn.relu))
-
-# model.build()
-# model.summary()
-
-model.fit()
 
 
-# history = model.fit([new_train_data, new_div_data], new_train_labels, epochs=EPOCHS,
-#                         validation_split=0.2, verbose=0, #batch_size=10,
-#                         callbacks=[early_stop, PrintDot()])
+
+train_data = np.loadtxt("song.csv", delimiter=',')
+train_data = np.swapaxes(train_data,0,1)
+train_data = np.expand_dims(train_data, axis=2)
+#train_data = train_data[:, np.newaxis, np.newaxis, :]
+# train_data = np.swapaxes(train_data,0,3)
+
+lable_data = np.loadtxt("Expert.csv", delimiter=',')
+lable_data = np.expand_dims(lable_data, axis=1)
+
+maxlen = train_data.shape[1]
+
+model = Sequential()
+model.add(Conv1D(
+    filters=2,
+    kernel_size=2,
+    input_shape=(maxlen, 1)
+))
+model.add(Activation('relu'))
+model.add(MaxPool1D(
+    pool_size=2,
+    strides=2,
+    padding='same'
+))
+model.add(Conv1D(
+    filters=2,
+    kernel_size=2
+))
+model.add(Activation('relu'))
+model.add(MaxPool1D(
+    pool_size=2,
+    strides=2,
+    padding='same'
+))
+model.add(Flatten())
+model.add(Dense(50))
+model.add(Activation('relu'))
+
+# Fully connected layer 2 to shape (10) for 10 classes
+model.add(Dense(1))
+model.add(Activation('softmax'))
+model.compile(loss='mse', optimizer='adam')
+
+
+print(model.summary())
+
+
+# fit model
+model.fit(train_data, lable_data)
+
