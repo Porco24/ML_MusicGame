@@ -1,5 +1,5 @@
-from keras.layers import Conv1D, Dense, MaxPooling1D, Flatten, Dropout, LSTM, Input, BatchNormalization, TimeDistributed
-from keras.models import Model
+from keras.layers import Conv1D, Dense, MaxPooling1D, Flatten, Dropout, LSTM, Input, BatchNormalization, MaxPool1D
+from keras.models import Model, Sequential
 from keras.models import load_model
 import numpy as np
 import os
@@ -36,34 +36,64 @@ import librosa
 
 
 
-model_input = Input(shape=(128, 1), name='input')
-layer = model_input
-layer = Conv1D(filters=40,
+model = Sequential()
+model.add(Conv1D(filters=40,
                kernel_size=5,
                padding='valid',
-               activation='relu')(layer)
-layer = MaxPooling1D(pool_size=6,
-                     padding='same')(layer)
-layer = Conv1D(filters=40,
+               activation='relu',
+                input_shape=(128, 1)))
+model.add(MaxPooling1D(pool_size = 6,
+                       padding='same'))
+model.add(Conv1D(filters=40,
                kernel_size=5,
                padding='valid',
-               activation='relu')(layer)
-layer = BatchNormalization(axis=2)(layer)
-layer = MaxPooling1D(pool_size=6,
-                     padding='same')(layer)
-layer = Dropout(0.3)(layer)
-layer = LSTM(40, return_sequences=True,
-             activation="tanh")(layer)
-layer = Dropout(0.3)(layer)
-layer = Flatten()(layer)
-layer = Dense(40, activation = 'relu')(layer)
-#layer = BatchNormalization(axis = 1)(layer)
-layer = Dense(1)(layer)
-model = Model(model_input, layer)
-
+               activation='relu'))
+model.add(MaxPooling1D(pool_size=6,
+                     padding='same'))
+model.add(BatchNormalization(axis=2))
+model.add(Dropout(0.3))
+model.add(LSTM(40, return_sequences=True,
+             activation="tanh"))
+model.add(Dropout(0.3))
+model.add(Flatten())
+model.add(Dense(40, activation = 'relu'))
+model.add(Dense(1))
 model.compile(loss='mse', optimizer='adam')
 
+
+
+
+
+# model_input = Input(shape=(128, 1), name='input')
+# layer = model_input
+# layer = Conv1D(filters=40,
+#                kernel_size=5,
+#                padding='valid',
+#                activation='relu')(layer)
+# layer = MaxPooling1D(pool_size=6,
+#                      padding='same')(layer)
+# layer = Conv1D(filters=40,
+#                kernel_size=5,
+#                padding='valid',
+#                activation='relu')(layer)
+# layer = BatchNormalization(axis=2)(layer)
+# layer = MaxPooling1D(pool_size=6,
+#                      padding='same')(layer)
+# layer = Dropout(0.3)(layer)
+# layer = LSTM(40, return_sequences=True,
+#              activation="tanh")(layer)
+# layer = Dropout(0.3)(layer)
+# layer = Flatten()(layer)
+# layer = Dense(40, activation = 'relu')(layer)
+# #layer = BatchNormalization(axis = 1)(layer)
+# layer = Dense(1)(layer)
+# model = Model(model_input, layer)
+#
+# model.compile(loss='mse', optimizer='adam')
+
 print(model.summary())
+
+
 
 # fit model
 # print('------------Training------------')
@@ -184,10 +214,15 @@ def loadData(path, rate):
 # cost = model.evaluate(X_test, Y_test)
 # print('test coast:', cost)
 
-data, sample = librosa.load('China-M.wav')
+data, sample = librosa.load('song.wav')
 S = librosa.feature.melspectrogram(y=data, sr=sample)
 S = np.swapaxes(S, 0, 1)
 S = np.expand_dims(S, axis=2)
 myModel = load_model('first.h5')
-predictions = myModel.predict(S)
+predictions = myModel.predict_classes(S)
+find1 = []
+for i in predictions:
+    if(i==1):
+        find1.append(i)
+print(find1)
 print(predictions)

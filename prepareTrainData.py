@@ -34,6 +34,7 @@ def getNotes(path):
                 BS_time = []
                 #存储csv格式
                 csvFormat = np.zeros((1,songLen))
+                csvFormat = np.full(csvFormat.shape, -1)
                 for note in notes:
                     if not (BS_time):
                         i = int((note['_time'] * 60 / bpm)*22050/512)
@@ -120,5 +121,6 @@ def delNoteCsv(path):
         print("已完成：",count,"/",total)
         count += 1
         os.chdir("..")
+
 
 getNotes("trainData/unzipFile")
