@@ -204,25 +204,25 @@ def loadData(path, rate):
 # print('test coast:', cost)
 # print('complete')
 
-# X_train = np.load('X_train.npy')
-# Y_train = np.load('Y_train.npy')
-#
-# model.fit(X_train, Y_train)
-# model.save('first.h5')
+X_train = np.load('X_train.npy')
+Y_train = np.load('Y_train.npy')
 
+model.fit(X_train, Y_train)
+model.save('first.h5')
+#
 # print('------------Test------------')
 # cost = model.evaluate(X_test, Y_test)
 # print('test coast:', cost)
 
-data, sample = librosa.load('song.wav')
-S = librosa.feature.melspectrogram(y=data, sr=sample)
-S = np.swapaxes(S, 0, 1)
-S = np.expand_dims(S, axis=2)
-myModel = load_model('first.h5')
-predictions = myModel.predict_classes(S)
-find1 = []
-for i in predictions:
-    if(i==1):
-        find1.append(i)
-print(find1)
-print(predictions)
+# data, sample = librosa.load('song.wav')
+# S = librosa.feature.melspectrogram(y=data, sr=sample)
+# S = np.swapaxes(S, 0, 1)
+# S = np.expand_dims(S, axis=2)
+# myModel = load_model('first.h5')
+# predictions = myModel.predict_classes(S)
+# find1 = []
+# for i in predictions:
+#     if(i==1):
+#         find1.append(i)
+# print(find1)
+# print(predictions)
